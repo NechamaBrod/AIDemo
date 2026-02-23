@@ -21,8 +21,13 @@ export const login = async (credentials: LoginRequest): Promise<LoginResponse> =
     return Promise.resolve(MOCK_USER);
   }
 
-  const response = await axios.post<LoginResponse>(`${API_BASE_URL}/auth/login`, credentials);
-  return response.data;
+  try {
+    const response = await axios.post<LoginResponse>(`${API_BASE_URL}/auth/login`, credentials);
+    return response.data;
+  } catch (err: unknown) {
+    const axiosError = err as { response?: { data?: { message?: string } } };
+    throw new Error(axiosError.response?.data?.message || 'אימייל או סיסמה שגויים');
+  }
 };
 
 export const logout = (): void => {
@@ -32,7 +37,14 @@ export const logout = (): void => {
 
 export const getSession = (): LoginResponse['user'] | null => {
   const raw = localStorage.getItem('user');
-  return raw ? (JSON.parse(raw) as LoginResponse['user']) : null;
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw) as LoginResponse['user'];
+  } catch {
+    localStorage.removeItem('user');
+    localStorage.removeItem('token');
+    return null;
+  }
 };
 
 export const saveSession = (data: LoginResponse): void => {

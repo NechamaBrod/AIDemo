@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useId } from 'react';
 
 interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: string;
@@ -6,10 +6,13 @@ interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   icon?: React.ComponentType<{ size?: number }>;
 }
 
-const Input = ({ label, error, icon: Icon, ...props }: InputProps) => {
+const Input = ({ label, error, icon: Icon, id: externalId, ...props }: InputProps) => {
+  const autoId = useId();
+  const inputId = externalId || autoId;
+
   return (
     <div className="w-full">
-      {label && <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>}
+      {label && <label htmlFor={inputId} className="block text-sm font-medium text-gray-700 mb-1">{label}</label>}
       <div className="relative">
         {Icon && (
           <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-gray-400">
@@ -17,6 +20,9 @@ const Input = ({ label, error, icon: Icon, ...props }: InputProps) => {
           </div>
         )}
         <input
+          id={inputId}
+          aria-invalid={error ? true : undefined}
+          aria-describedby={error ? `${inputId}-error` : undefined}
           className={`
             block w-full rounded-md border shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all
             ${Icon ? 'pr-10' : ''}
@@ -29,7 +35,7 @@ const Input = ({ label, error, icon: Icon, ...props }: InputProps) => {
           {...props}
         />
       </div>
-      {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
+      {error && <p id={`${inputId}-error`} className="mt-1 text-sm text-red-600" role="alert">{error}</p>}
     </div>
   );
 };

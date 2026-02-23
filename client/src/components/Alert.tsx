@@ -27,7 +27,7 @@ const Alert = ({ type = 'info', title, children, onClose }: AlertProps) => {
   const Icon = icons[type];
 
   return (
-    <div className={`rounded-md p-4 border ${styles[type]} mb-4 relative`}>
+    <div role="alert" className={`rounded-md p-4 border ${styles[type]} mb-4 relative`}>
       <div className="flex">
         <div className="flex-shrink-0 ml-3">
           <Icon size={20} />
@@ -42,7 +42,7 @@ const Alert = ({ type = 'info', title, children, onClose }: AlertProps) => {
         </div>
         {onClose && (
           <div className="mr-auto pl-3">
-            <button onClick={onClose} className="inline-flex rounded-md p-1.5 focus:outline-none focus:ring-2 focus:ring-offset-2 opacity-60 hover:opacity-100">
+            <button onClick={onClose} aria-label="סגור" className="inline-flex rounded-md p-1.5 focus:outline-none focus:ring-2 focus:ring-offset-2 opacity-60 hover:opacity-100">
               <X size={16} />
             </button>
           </div>
