@@ -11,18 +11,12 @@ import {
   User,
 } from 'lucide-react';
 import { logout, getSession } from '../services/authService';
-import type { LoginResponse } from '../interfaces/IAuth';
-
-type UserInfo = LoginResponse['user'];
-
-/* ─── helper ─── */
-const getInitials = (name: string) =>
-  name
-    .split(' ')
-    .map((n) => n[0])
-    .join('')
-    .toUpperCase()
-    .slice(0, 2);
+import { getInitials, getRoleLabel } from '../services/userService';
+import type { UserInfo } from '../services/userService';
+import Avatar from '../components/Avatar';
+import Badge from '../components/Badge';
+import Card from '../components/Card';
+import Button from '../components/Button';
 
 /* ─── Stat card data (static, no dynamic Tailwind) ─── */
 const STATS = [
@@ -56,12 +50,20 @@ const STATS = [
   },
 ];
 
-/* ─── Role badge label ─── */
-const roleLabel: Record<string, string> = {
-  admin: 'מנהל',
-  manager: 'מנהל',
-  user: 'משתמש',
-};
+/* ─── Feature cards (static) ─── */
+const FEATURE_CARDS = [
+  { icon: Package, title: 'ניהול מלאי', desc: 'עקוב אחרי מוצרים וכמויות בזמן אמת' },
+  { icon: Users, title: 'ניהול לקוחות', desc: 'נהל פרטי לקוחות והיסטוריית הזמנות' },
+  { icon: BarChart2, title: 'דוחות ונתונים', desc: 'קבל תמונת מצב מקיפה על הביצועים' },
+];
+
+/* ─── Quick actions (static) ─── */
+const QUICK_ACTIONS = [
+  { icon: Package, label: 'הוסף מוצר' },
+  { icon: Users, label: 'לקוח חדש' },
+  { icon: ShoppingCart, label: 'הזמנה חדשה' },
+  { icon: BarChart2, label: 'הפק דוח' },
+];
 
 /* ================================================================
    HomePage
@@ -145,11 +147,7 @@ const HomePage = () => {
 
           {/* Feature cards */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-10 sm:mt-14 w-full max-w-3xl px-2">
-            {[
-              { icon: Package, title: 'ניהול מלאי', desc: 'עקוב אחר מוצרים וכמויות בזמן אמת' },
-              { icon: Users, title: 'ניהול לקוחות', desc: 'נהל פרטי לקוחות והיסטוריית הזמנות' },
-              { icon: BarChart2, title: 'דוחות ונתונים', desc: 'קבל תמונת מצב מקיפה על הביצועים' },
-            ].map(({ icon: Icon, title, desc }) => (
+            {FEATURE_CARDS.map(({ icon: Icon, title, desc }) => (
               <div
                 key={title}
                 className="bg-white/10 backdrop-blur rounded-xl p-5 text-center border border-white/20
@@ -192,11 +190,11 @@ const HomePage = () => {
         <div className="relative" ref={dropdownRef}>
           <button
             onClick={() => setDropdownOpen((v) => !v)}
+            aria-expanded={dropdownOpen}
+            aria-haspopup="true"
             className="flex items-center gap-2 bg-gray-100 hover:bg-gray-200 rounded-xl px-3 py-2 transition-colors"
           >
-            <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white text-sm font-bold shrink-0">
-              {getInitials(user.name)}
-            </div>
+            <Avatar size="sm" fallback={getInitials(user.name)} className="bg-blue-600 text-white border-blue-600 shrink-0" />
             <span className="text-sm font-medium text-gray-700 hidden sm:block">{user.name}</span>
             <ChevronDown
               size={16}
@@ -206,23 +204,21 @@ const HomePage = () => {
 
           {/* Dropdown panel */}
           {dropdownOpen && (
-            <div className="absolute left-0 mt-2 w-64 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden z-50">
+            <div role="menu" className="absolute left-0 mt-2 w-64 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden z-50">
               {/* User info */}
               <div className="px-4 py-4 border-b border-gray-100 flex items-center gap-3">
-                <div className="w-11 h-11 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold text-base shrink-0">
-                  {getInitials(user.name)}
-                </div>
+                <Avatar size="md" fallback={getInitials(user.name)} className="bg-blue-600 text-white border-blue-600 shrink-0" />
                 <div className="min-w-0">
                   <p className="text-sm font-semibold text-gray-900 truncate">{user.name}</p>
                   <p className="text-xs text-gray-500 truncate">{user.email}</p>
-                  <span className="inline-block mt-1 text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-medium">
-                    {roleLabel[user.role] ?? user.role}
-                  </span>
+                  <Badge variant="primary" className="mt-1">
+                    {getRoleLabel(user.role)}
+                  </Badge>
                 </div>
               </div>
 
               {/* Profile row */}
-              <button className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+              <button role="menuitem" className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
                 <User size={16} className="text-gray-400" />
                 הפרופיל שלי
               </button>
@@ -230,6 +226,7 @@ const HomePage = () => {
               {/* Logout */}
               <div className="border-t border-gray-100">
                 <button
+                  role="menuitem"
                   onClick={handleLogout}
                   className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors"
                 >
@@ -270,27 +267,21 @@ const HomePage = () => {
         </div>
 
         {/* Quick actions */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 sm:p-6">
-          <h2 className="text-sm sm:text-base font-semibold text-gray-800 mb-3 sm:mb-4">פעולות מהירות</h2>
+        <Card title="פעולות מהירות">
           <div className="flex flex-wrap gap-2 sm:gap-3">
-            {[
-              { icon: Package, label: 'הוסף מוצר' },
-              { icon: Users, label: 'לקוח חדש' },
-              { icon: ShoppingCart, label: 'הזמנה חדשה' },
-              { icon: BarChart2, label: 'הפק דוח' },
-            ].map(({ icon: Icon, label }) => (
-              <button
+            {QUICK_ACTIONS.map(({ icon: Icon, label }) => (
+              <Button
                 key={label}
-                className="flex items-center gap-2 bg-gray-50 hover:bg-blue-50 hover:text-blue-700
-                           text-gray-700 border border-gray-200 hover:border-blue-200
-                           px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg text-xs sm:text-sm font-medium transition-all"
+                variant="outline"
+                size="sm"
+                icon={Icon}
+                disabled
               >
-                <Icon size={15} />
                 {label}
-              </button>
+              </Button>
             ))}
           </div>
-        </div>
+        </Card>
       </div>
       </main>
     </div>

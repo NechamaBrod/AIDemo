@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, Monitor, Loader2 } from 'lucide-react';
 import { login, saveSession } from '../services/authService';
 import type { LoginRequest } from '../interfaces/IAuth';
+import Alert from '../components/Alert';
+import Button from '../components/Button';
 
 const LoginPage = () => {
   const [form, setForm] = useState<LoginRequest>({ email: '', password: '' });
@@ -32,8 +34,7 @@ const LoginPage = () => {
       saveSession(data);
       navigate('/');
     } catch (err: unknown) {
-      const axiosError = err as { response?: { data?: { message?: string } } };
-      setError(axiosError.response?.data?.message || 'אימייל או סיסמה שגויים');
+      setError(err instanceof Error ? err.message : 'אימייל או סיסמה שגויים');
     } finally {
       setIsLoading(false);
     }
@@ -62,16 +63,19 @@ const LoginPage = () => {
 
             {/* Email */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="login-email" className="block text-sm font-medium text-gray-700 mb-1">
                 כתובת אימייל
               </label>
               <input
+                id="login-email"
                 type="email"
                 name="email"
                 value={form.email}
                 onChange={handleChange}
                 placeholder="example@mail.com"
                 disabled={isLoading}
+                aria-invalid={error ? true : undefined}
+                aria-describedby={error ? 'login-error' : undefined}
                 className={`
                   block w-full rounded-md border shadow-sm py-2 px-3
                   focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all
@@ -83,17 +87,20 @@ const LoginPage = () => {
 
             {/* Password */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="login-password" className="block text-sm font-medium text-gray-700 mb-1">
                 סיסמה
               </label>
               <div className="relative">
                 <input
+                  id="login-password"
                   type={showPassword ? 'text' : 'password'}
                   name="password"
                   value={form.password}
                   onChange={handleChange}
                   placeholder="הכנס סיסמה"
                   disabled={isLoading}
+                  aria-invalid={error ? true : undefined}
+                  aria-describedby={error ? 'login-error' : undefined}
                   className={`
                     block w-full rounded-md border shadow-sm py-2 px-3 pl-10
                     focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all
@@ -104,6 +111,7 @@ const LoginPage = () => {
                 <button
                   type="button"
                   onClick={() => setShowPassword((v) => !v)}
+                  aria-label={showPassword ? 'הסתר סיסמה' : 'הצג סיסמה'}
                   className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400 hover:text-gray-600"
                   tabIndex={-1}
                 >
@@ -114,25 +122,18 @@ const LoginPage = () => {
 
             {/* Error Alert */}
             {error && (
-              <div className="rounded-md p-3 border bg-red-50 border-red-200 text-red-800 text-sm flex items-center gap-2">
-                <span>{error}</span>
+              <div id="login-error">
+                <Alert type="error" onClose={() => setError(null)}>
+                  {error}
+                </Alert>
               </div>
             )}
 
             {/* Submit Button */}
-            <button
-              type="submit"
-              onClick={isDisabled ? (e) => e.preventDefault() : undefined}
-              style={{ backgroundColor: '#2563eb', color: '#ffffff' }}
-              className={`
-                w-full inline-flex items-center justify-center rounded-lg font-semibold
-                transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500
-                px-4 py-2.5 text-base
-                ${isDisabled
-                  ? 'opacity-40 cursor-not-allowed pointer-events-none'
-                  : 'hover:brightness-110 active:brightness-90 shadow-md hover:shadow-lg'
-                }
-              `}
+            <Button
+              variant="primary"
+              disabled={isDisabled}
+              className="w-full text-base"
             >
               {isLoading ? (
                 <>
@@ -142,7 +143,7 @@ const LoginPage = () => {
               ) : (
                 'כניסה'
               )}
-            </button>
+            </Button>
 
           </form>
         </div>

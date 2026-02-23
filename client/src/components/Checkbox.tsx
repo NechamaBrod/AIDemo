@@ -4,9 +4,10 @@ interface CheckboxProps {
   label?: string;
   checked: boolean;
   onChange: (checked: boolean) => void;
+  'aria-label'?: string;
 }
 
-const Checkbox = ({ label, checked, onChange }: CheckboxProps) => (
+const Checkbox = ({ label, checked, onChange, 'aria-label': ariaLabel }: CheckboxProps) => (
   <label className="inline-flex items-center cursor-pointer group">
     <div className="relative flex items-center">
       <input
@@ -14,6 +15,7 @@ const Checkbox = ({ label, checked, onChange }: CheckboxProps) => (
         className="peer sr-only"
         checked={checked}
         onChange={e => onChange(e.target.checked)}
+        aria-label={!label ? ariaLabel : undefined}
       />
       <div className={`
         w-5 h-5 border-2 rounded transition-colors flex items-center justify-center
