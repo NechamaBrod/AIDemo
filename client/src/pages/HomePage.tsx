@@ -191,7 +191,8 @@ const HomePage = () => {
           <button
             onClick={() => setDropdownOpen((v) => !v)}
             aria-expanded={dropdownOpen}
-            aria-haspopup="true"
+            aria-haspopup="menu"
+            aria-controls="user-menu"
             className="flex items-center gap-2 bg-gray-100 hover:bg-gray-200 rounded-xl px-3 py-2 transition-colors"
           >
             <Avatar size="sm" fallback={getInitials(user.name)} className="bg-blue-600 text-white border-blue-600 shrink-0" />
@@ -204,7 +205,7 @@ const HomePage = () => {
 
           {/* Dropdown panel */}
           {dropdownOpen && (
-            <div role="menu" className="absolute left-0 mt-2 w-64 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden z-50">
+            <div id="user-menu" role="menu" className="absolute left-0 mt-2 w-64 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden z-50">
               {/* User info */}
               <div className="px-4 py-4 border-b border-gray-100 flex items-center gap-3">
                 <Avatar size="md" fallback={getInitials(user.name)} className="bg-blue-600 text-white border-blue-600 shrink-0" />
