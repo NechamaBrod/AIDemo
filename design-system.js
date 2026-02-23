@@ -1,356 +1,22 @@
 import React, { useState } from 'react';
 import { 
-  Check, X, AlertTriangle, Info, Search, Bell, Menu, 
-  ChevronRight, ChevronDown, User, Settings, Home, 
-  ShoppingCart, Package, Users, BarChart2, Edit, Trash2,
-  Eye, Monitor, Cpu, Plus, XCircle, CheckCircle, Loader2
+  Bell, Menu, Home, ShoppingCart, Package, BarChart2, Edit, Trash2,
+  Monitor, Cpu, Plus, CheckCircle
 } from 'lucide-react';
 
-/* ===================================================================
-  🎨 יסודות (Foundations)
-  ===================================================================
-*/
-
-// פלטת צבעים לשימוש במערכת (Tailwind Classes reference)
-const colors = {
-  primary: "bg-blue-600 hover:bg-blue-700 text-white",
-  secondary: "bg-gray-800 hover:bg-gray-900 text-white",
-  success: "bg-green-500 text-white",
-  error: "bg-red-500 text-white",
-  warning: "bg-yellow-500 text-white",
-  info: "bg-cyan-500 text-white",
-  ghost: "bg-transparent hover:bg-gray-100 text-gray-700",
-  outline: "bg-transparent border border-gray-300 text-gray-700 hover:bg-gray-50",
-  disabled: "bg-gray-200 text-gray-400 cursor-not-allowed",
-};
-
-/* ===================================================================
-  🧩 רכיבי בסיס (Core Components)
-  ===================================================================
-*/
-
-// --- Button ---
-const Button = ({ variant = 'primary', size = 'md', icon: Icon, children, disabled, onClick, className = '' }) => {
-  const baseStyle = "inline-flex items-center justify-center rounded-lg font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500";
-  
-  const variants = {
-    primary: colors.primary,
-    secondary: colors.secondary,
-    success: colors.success,
-    error: colors.error,
-    ghost: colors.ghost,
-    outline: colors.outline,
-  };
-
-  const sizes = {
-    sm: "px-3 py-1.5 text-sm",
-    md: "px-4 py-2 text-base",
-    lg: "px-6 py-3 text-lg",
-    icon: "p-2",
-  };
-
-  const style = disabled ? colors.disabled : (variants[variant] || variants.primary);
-
-  return (
-    <button 
-      disabled={disabled}
-      onClick={onClick}
-      className={`${baseStyle} ${style} ${sizes[size]} ${className}`}
-    >
-      {Icon && <Icon size={size === 'sm' ? 16 : 20} className={children ? "ml-2" : ""} />}
-      {children}
-    </button>
-  );
-};
-
-// --- Input ---
-const Input = ({ label, error, icon: Icon, ...props }) => {
-  return (
-    <div className="w-full">
-      {label && <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>}
-      <div className="relative">
-        {Icon && (
-          <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-gray-400">
-            <Icon size={20} />
-          </div>
-        )}
-        <input
-          className={`
-            block w-full rounded-md border shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all
-            ${Icon ? 'pr-10' : ''}
-            ${error 
-              ? 'border-red-300 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500' 
-              : 'border-gray-300 text-gray-900 focus:border-blue-500'
-            }
-            disabled:bg-gray-50 disabled:text-gray-500
-          `}
-          {...props}
-        />
-      </div>
-      {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
-    </div>
-  );
-};
-
-// --- Checkbox ---
-const Checkbox = ({ label, checked, onChange }) => (
-  <label className="inline-flex items-center cursor-pointer group">
-    <div className="relative flex items-center">
-      <input 
-        type="checkbox" 
-        className="peer sr-only" 
-        checked={checked} 
-        onChange={e => onChange(e.target.checked)} 
-      />
-      <div className={`
-        w-5 h-5 border-2 rounded transition-colors flex items-center justify-center
-        ${checked ? 'bg-blue-600 border-blue-600' : 'border-gray-300 bg-white group-hover:border-blue-400'}
-      `}>
-        {checked && <Check size={14} className="text-white" />}
-      </div>
-    </div>
-    {label && <span className="mr-2 text-sm text-gray-700 select-none">{label}</span>}
-  </label>
-);
-
-// --- Toggle / Switch ---
-const Toggle = ({ checked, onChange, label }) => (
-  <label className="inline-flex items-center cursor-pointer">
-    <div className="relative">
-      <input type="checkbox" className="sr-only" checked={checked} onChange={e => onChange(e.target.checked)} />
-      <div className={`w-11 h-6 rounded-full transition-colors ${checked ? 'bg-blue-600' : 'bg-gray-200'}`}></div>
-      <div className={`
-        absolute top-0.5 right-0.5 left-auto bg-white border border-gray-200 rounded-full h-5 w-5 transition-transform transform
-        ${checked ? '-translate-x-5' : 'translate-x-0'}
-      `}></div>
-    </div>
-    {label && <span className="mr-3 text-sm font-medium text-gray-700">{label}</span>}
-  </label>
-);
-
-// --- Select ---
-const Select = ({ label, options, value, onChange, error }) => (
-  <div className="w-full">
-    {label && <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>}
-    <div className="relative">
-      <select
-        value={value}
-        onChange={e => onChange(e.target.value)}
-        className={`
-          appearance-none block w-full pl-10 pr-3 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md border
-          ${error ? 'border-red-300' : ''}
-        `}
-      >
-        {options.map(opt => (
-          <option key={opt.value} value={opt.value}>{opt.label}</option>
-        ))}
-      </select>
-      <div className="absolute inset-y-0 left-0 flex items-center px-2 pointer-events-none">
-        <ChevronDown size={16} className="text-gray-500" />
-      </div>
-    </div>
-    {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
-  </div>
-);
-
-/* ===================================================================
-  🧭 ניווט וחיווי (Navigation & Feedback)
-  ===================================================================
-*/
-
-// --- Badge ---
-const Badge = ({ children, variant = 'primary', className = '' }) => {
-  const styles = {
-    primary: "bg-blue-100 text-blue-800",
-    success: "bg-green-100 text-green-800",
-    warning: "bg-yellow-100 text-yellow-800",
-    error: "bg-red-100 text-red-800",
-    gray: "bg-gray-100 text-gray-800",
-  };
-  return (
-    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${styles[variant]} ${className}`}>
-      {children}
-    </span>
-  );
-};
-
-// --- Alert ---
-const Alert = ({ type = 'info', title, children, onClose }) => {
-  const styles = {
-    info: "bg-blue-50 border-blue-200 text-blue-800",
-    success: "bg-green-50 border-green-200 text-green-800",
-    warning: "bg-yellow-50 border-yellow-200 text-yellow-800",
-    error: "bg-red-50 border-red-200 text-red-800",
-  };
-  
-  const icons = {
-    info: Info,
-    success: CheckCircle,
-    warning: AlertTriangle,
-    error: XCircle,
-  };
-
-  const Icon = icons[type];
-
-  return (
-    <div className={`rounded-md p-4 border ${styles[type]} mb-4 relative`}>
-      <div className="flex">
-        <div className="flex-shrink-0 ml-3">
-          <Icon size={20} />
-        </div>
-        <div className="flex-1 md:flex md:justify-between">
-          <div>
-            {title && <h3 className="text-sm font-medium">{title}</h3>}
-            <div className={`text-sm ${title ? 'mt-2' : ''}`}>
-              {children}
-            </div>
-          </div>
-        </div>
-        {onClose && (
-          <div className="mr-auto pl-3">
-            <button onClick={onClose} className="inline-flex rounded-md p-1.5 focus:outline-none focus:ring-2 focus:ring-offset-2 opacity-60 hover:opacity-100">
-              <X size={16} />
-            </button>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-};
-
-// --- Modal ---
-const Modal = ({ isOpen, onClose, title, children, footer }) => {
-  if (!isOpen) return null;
-  return (
-    <div className="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-      <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-        <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onClick={onClose} aria-hidden="true"></div>
-        <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-        <div className="inline-block align-bottom bg-white rounded-lg text-right overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg w-full">
-          <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-            <div className="sm:flex sm:items-start">
-              <div className="mt-3 text-center sm:mt-0 sm:mr-4 sm:text-right w-full">
-                <h3 className="text-lg leading-6 font-medium text-gray-900" id="modal-title">
-                  {title}
-                </h3>
-                <div className="mt-2">
-                  {children}
-                </div>
-              </div>
-            </div>
-          </div>
-          {footer && (
-            <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse gap-3">
-              {footer}
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// --- Breadcrumbs ---
-const Breadcrumbs = ({ items }) => (
-  <nav className="flex" aria-label="Breadcrumb">
-    <ol className="flex items-center space-x-2 space-x-reverse">
-      {items.map((item, index) => (
-        <li key={index} className="flex items-center">
-          {index > 0 && <ChevronRight size={16} className="text-gray-400 mx-2 rotate-180" />}
-          {item.href ? (
-            <a href={item.href} className="text-sm font-medium text-gray-500 hover:text-gray-700">
-              {item.label}
-            </a>
-          ) : (
-            <span className="text-sm font-medium text-gray-900">{item.label}</span>
-          )}
-        </li>
-      ))}
-    </ol>
-  </nav>
-);
-
-/* ===================================================================
-  📊 תצוגת נתונים (Data Display)
-  ===================================================================
-*/
-
-// --- Card ---
-const Card = ({ title, subtitle, children, actions, className = '' }) => (
-  <div className={`bg-white overflow-hidden shadow rounded-lg border border-gray-100 ${className}`}>
-    {(title || actions) && (
-      <div className="bg-white px-4 py-5 border-b border-gray-200 sm:px-6 flex justify-between items-center">
-        <div>
-          {title && <h3 className="text-lg leading-6 font-medium text-gray-900">{title}</h3>}
-          {subtitle && <p className="mt-1 max-w-2xl text-sm text-gray-500">{subtitle}</p>}
-        </div>
-        {actions && <div>{actions}</div>}
-      </div>
-    )}
-    <div className="px-4 py-5 sm:p-6">
-      {children}
-    </div>
-  </div>
-);
-
-// --- Table ---
-const Table = ({ columns, data, actions }) => (
-  <div className="flex flex-col w-full">
-    <div className="overflow-x-auto">
-      <div className="align-middle inline-block min-w-full">
-        <div className="shadow overflow-hidden border-b border-gray-200 sm:rounded-lg">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                {columns.map((col, idx) => (
-                  <th key={idx} scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    {col.header}
-                  </th>
-                ))}
-                {actions && <th scope="col" className="relative px-6 py-3"><span className="sr-only">פעולות</span></th>}
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {data.map((row, rowIdx) => (
-                <tr key={rowIdx} className="hover:bg-gray-50">
-                  {columns.map((col, colIdx) => (
-                    <td key={colIdx} className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {col.render ? col.render(row[col.accessor], row) : row[col.accessor]}
-                    </td>
-                  ))}
-                  {actions && (
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      {actions(row)}
-                    </td>
-                  )}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  </div>
-);
-
-// --- Avatar ---
-const Avatar = ({ src, alt, fallback, size = 'md' }) => {
-  const sizes = {
-    sm: "h-8 w-8 text-xs",
-    md: "h-10 w-10 text-sm",
-    lg: "h-14 w-14 text-base",
-  };
-  
-  return (
-    <div className={`${sizes[size]} rounded-full bg-gray-200 flex items-center justify-center overflow-hidden border border-gray-300 text-gray-600 font-bold`}>
-      {src ? (
-        <img src={src} alt={alt} className="h-full w-full object-cover" />
-      ) : (
-        <span>{fallback || <User />}</span>
-      )}
-    </div>
-  );
-};
+import { theme } from './client/src/components/theme';
+import Button from './client/src/components/Button';
+import Input from './client/src/components/Input';
+import Checkbox from './client/src/components/Checkbox';
+import Toggle from './client/src/components/Toggle';
+import Select from './client/src/components/Select';
+import Badge from './client/src/components/Badge';
+import Alert from './client/src/components/Alert';
+import Modal from './client/src/components/Modal';
+import Breadcrumbs from './client/src/components/Breadcrumbs';
+import Card from './client/src/components/Card';
+import Table from './client/src/components/Table';
+import Avatar from './client/src/components/Avatar';
 
 /* ===================================================================
   📱 אפליקציית דמו (Showcase)
@@ -379,15 +45,20 @@ export default function DesignSystemShowcase() {
             <section>
               <h2 className="text-2xl font-bold mb-6 text-gray-800 border-b pb-2">פלטת צבעים</h2>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {Object.entries(colors).filter(([key]) => !['ghost', 'outline', 'disabled'].includes(key)).map(([name, cls]) => (
-                  <div key={name} className="flex flex-col rounded-lg overflow-hidden shadow-sm">
-                    <div className={`h-24 ${cls} flex items-center justify-center`}></div>
-                    <div className="p-3 bg-white">
-                      <p className="font-bold capitalize text-gray-700">{name}</p>
-                      <p className="text-xs text-gray-500">{cls.split(' ')[0]}</p>
-                    </div>
-                  </div>
-                ))}
+                {Object.entries(theme.colors)
+                  .filter(([key]) => !['ghost', 'outline', 'disabled'].includes(key))
+                  .map(([name, val]) => {
+                    const solidCls = typeof val === 'object' ? val.solid : val;
+                    return (
+                      <div key={name} className="flex flex-col rounded-lg overflow-hidden shadow-sm">
+                        <div className={`h-24 ${solidCls} flex items-center justify-center`}></div>
+                        <div className="p-3 bg-white">
+                          <p className="font-bold capitalize text-gray-700">{name}</p>
+                          <p className="text-xs text-gray-500">{solidCls.split(' ')[0]}</p>
+                        </div>
+                      </div>
+                    );
+                  })}
               </div>
             </section>
 
