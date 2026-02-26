@@ -1,8 +1,8 @@
 {
   "compilerOptions": {
     // File Layout
-    "rootDir": "src",
     "outDir": "dist",
+    "baseUrl": ".",
 
     // Environment Settings
     "module": "commonjs",
@@ -21,6 +21,11 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
+
+    // Path Aliases
+    "paths": {
+      "@architect/shared": ["../shared/src"]
+    },
 
     // Module Resolution
     "esModuleInterop": true,
