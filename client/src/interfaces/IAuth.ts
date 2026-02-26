@@ -1,14 +1,2 @@
-export interface LoginRequest {
-  email: string;
-  password: string;
-}
-
-export interface LoginResponse {
-  token: string;
-  user: {
-    id: string;
-    name: string;
-    email: string;
-    role: string;
-  };
-}
+// re-export מ-shared לצורך תאימות לאחור
+export type { LoginRequest, LoginResponse, IUser } from '@architect/shared';
