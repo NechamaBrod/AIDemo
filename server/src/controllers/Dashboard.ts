@@ -1,6 +1,8 @@
 import { Request, Response } from "express";
 import Order from "../models/Order";
-import type { SalesAnalyticsResponse } from "@architect/shared";
+import Customer from "../models/Customer";
+import Product from "../models/Product";
+import type { SalesAnalyticsResponse, DashboardStats } from "@architect/shared";
 
 /**
  * @swagger
@@ -263,6 +265,71 @@ export const getSalesAnalytics = async (req: Request, res: Response): Promise<vo
     res.json(result);
   } catch (error) {
     console.error("Error fetching sales analytics:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+/**
+ * @swagger
+ * /api/dashboard/stats:
+ *   get:
+ *     summary: סטטיסטיקות כלליות עבור ה-Dashboard
+ *     description: >
+ *       מחזיר סטטיסטיקות מצרפיות עבור ה-Dashboard - כולל מספר ההזמנות של היום
+ *       (ללא מבוטלות/מוחזרות), סך ההכנסות הכולל, מספר הלקוחות הכולל ומספר המוצרים.
+ *       כל השאילתות רצות במקביל לביצועים אופטימליים.
+ *     tags:
+ *       - Dashboard
+ *     responses:
+ *       200:
+ *         description: אובייקט הסטטיסטיקות
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/DashboardStats'
+ *       500:
+ *         description: שגיאת שרת פנימית
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
+export const getStats = async (_req: Request, res: Response): Promise<void> => {
+  try {
+    // טווח התאריכים של היום (00:00 עד 23:59)
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+
+    const endOfToday = new Date();
+    endOfToday.setHours(23, 59, 59, 999);
+
+    // פילטר בסיס - התעלמות מהזמנות שבוטלו/הוחזרו
+    const activeOrdersFilter = { status: { $nin: ["cancelled", "returned"] } };
+
+    // הרצת כל ארבע השאילתות במקביל לביצועים אופטימליים
+    const [todaysOrders, revenueResult, totalCustomers, totalProducts] = await Promise.all([
+      Order.countDocuments({
+        createdAt: { $gte: startOfToday, $lte: endOfToday },
+        ...activeOrdersFilter,
+      }),
+      Order.aggregate<{ _id: null; total: number }>([
+        { $match: activeOrdersFilter },
+        { $group: { _id: null, total: { $sum: "$totalAmount" } } },
+      ]),
+      Customer.countDocuments({}),
+      Product.countDocuments({}),
+    ]);
+
+    const stats: DashboardStats = {
+      todaysOrders,
+      totalRevenue: revenueResult[0]?.total ?? 0,
+      totalCustomers,
+      totalProducts,
+    };
+
+    res.json(stats);
+  } catch (error) {
+    console.error("Error fetching dashboard stats:", error);
     res.status(500).json({ error: "Internal server error" });
   }
 };

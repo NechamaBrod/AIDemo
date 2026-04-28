@@ -8,6 +8,9 @@ const router = Router();
 // GET /api/dashboard/todays-orders
 router.get("/todays-orders", dashboardController.getTodaysOrdersCount);
 
+// GET /api/dashboard/stats
+router.get("/stats", dashboardController.getStats);
+
 // GET /api/dashboard/sales-analytics
 router.get(
   "/sales-analytics",

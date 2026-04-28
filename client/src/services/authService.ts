@@ -1,5 +1,5 @@
 import axios from 'axios';
-import type { LoginRequest, LoginResponse } from '../interfaces/IAuth';
+import type { LoginRequest, LoginResponse } from '@architect/shared';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 

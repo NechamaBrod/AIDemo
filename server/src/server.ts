@@ -5,13 +5,19 @@ import mongoose from "mongoose";
 import swaggerUi from "swagger-ui-express";
 import { swaggerSpec } from "./config/swagger";
 import dashboardRoutes from "./routes/dashboardRoutes";
+import errorHandler from "./middleware/errorHandler";
 
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(cors());
+app.use(
+  cors({
+    origin: process.env.CLIENT_URL || "http://localhost:5173",
+    credentials: true,
+  })
+);
 app.use(express.json());
 
 // חיבור ל-MongoDB
@@ -25,6 +31,9 @@ mongoose
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 app.get("/health", (_req, res) => {
+// מידלוור מרכזי לטיפול בשגיאות - חייב להירשם אחרי כל הנתיבים
+app.use(errorHandler);
+
   res.status(200).json({ status: "ok" });
 });
 

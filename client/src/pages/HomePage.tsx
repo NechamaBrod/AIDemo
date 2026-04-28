@@ -13,41 +13,20 @@ import {
 import { logout, getSession } from '../services/authService';
 import { getInitials, getRoleLabel } from '../services/userService';
 import type { UserInfo } from '../services/userService';
+import { getStats } from '../services/dashboardService';
+import type { DashboardStats } from '@architect/shared';
 import Avatar from '../components/Avatar';
 import Badge from '../components/Badge';
 import Card from '../components/Card';
 import Button from '../components/Button';
+import Alert from '../components/Alert';
 
-/* ─── Stat card data (static, no dynamic Tailwind) ─── */
-const STATS = [
-  {
-    icon: ShoppingCart,
-    label: 'הזמנות היום',
-    value: '24',
-    bg: 'bg-blue-100',
-    fg: 'text-blue-600',
-  },
-  {
-    icon: Users,
-    label: 'לקוחות פעילים',
-    value: '1,284',
-    bg: 'bg-green-100',
-    fg: 'text-green-600',
-  },
-  {
-    icon: Package,
-    label: 'מוצרים במלאי',
-    value: '342',
-    bg: 'bg-yellow-100',
-    fg: 'text-yellow-600',
-  },
-  {
-    icon: BarChart2,
-    label: 'הכנסות החודש',
-    value: '₪45,231',
-    bg: 'bg-purple-100',
-    fg: 'text-purple-600',
-  },
+/* ─── Stat card template (icons + colors only; values injected at render) ─── */
+const STAT_TEMPLATE = [
+  { icon: ShoppingCart, label: 'הזמנות היום', bg: 'bg-blue-100', fg: 'text-blue-600' },
+  { icon: Users, label: 'לקוחות פעילים', bg: 'bg-green-100', fg: 'text-green-600' },
+  { icon: Package, label: 'מוצרים במלאי', bg: 'bg-yellow-100', fg: 'text-yellow-600' },
+  { icon: BarChart2, label: 'סך הכנסות', bg: 'bg-purple-100', fg: 'text-purple-600' },
 ];
 
 /* ─── Feature cards (static) ─── */
@@ -71,6 +50,9 @@ const QUICK_ACTIONS = [
 const HomePage = () => {
   const [user, setUser] = useState<UserInfo | null>(null);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [statsLoading, setStatsLoading] = useState(true);
+  const [statsError, setStatsError] = useState<string | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
@@ -79,6 +61,30 @@ const HomePage = () => {
     const session = getSession();
     if (session) setUser(session);
   }, []);
+
+  /* טעינת סטטיסטיקות הדשבורד מהשרת */
+  useEffect(() => {
+    if (!user) return;
+    let cancelled = false;
+    setStatsLoading(true);
+    setStatsError(null);
+    getStats()
+      .then((data) => {
+        if (!cancelled) setStats(data);
+      })
+      .catch((err: unknown) => {
+        if (!cancelled) {
+          const msg = err instanceof Error ? err.message : 'שגיאה בטעינת הסטטיסטיקות';
+          setStatsError(msg);
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setStatsLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [user]);
 
   /* Close dropdown on outside click */
   useEffect(() => {
@@ -253,18 +259,40 @@ const HomePage = () => {
 
         {/* Stat cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5 mb-6 sm:mb-10">
-          {STATS.map(({ icon: Icon, label, value, bg, fg }) => (
-            <div
-              key={label}
-              className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 hover:shadow-md transition-shadow"
-            >
-              <div className={`inline-flex p-2.5 rounded-lg ${bg} mb-3`}>
-                <Icon size={20} className={fg} />
-              </div>
-              <p className="text-2xl font-bold text-gray-900">{value}</p>
-              <p className="text-sm text-gray-500 mt-1">{label}</p>
+          {statsLoading ? (
+            STAT_TEMPLATE.map((_, i) => (
+              <div key={i} className="animate-pulse bg-gray-200 h-24 rounded-xl" />
+            ))
+          ) : statsError ? (
+            <div className="col-span-2 lg:col-span-4">
+              <Alert type="error" title="שגיאה">
+                {statsError}
+              </Alert>
             </div>
-          ))}
+          ) : stats ? (
+            STAT_TEMPLATE.map(({ icon: Icon, label, bg, fg }, i) => {
+              const value =
+                i === 0
+                  ? stats.todaysOrders.toLocaleString('he-IL')
+                  : i === 1
+                  ? stats.totalCustomers.toLocaleString('he-IL')
+                  : i === 2
+                  ? stats.totalProducts.toLocaleString('he-IL')
+                  : `₪${stats.totalRevenue.toLocaleString('he-IL')}`;
+              return (
+                <div
+                  key={label}
+                  className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 hover:shadow-md transition-shadow"
+                >
+                  <div className={`inline-flex p-2.5 rounded-lg ${bg} mb-3`}>
+                    <Icon size={20} className={fg} />
+                  </div>
+                  <p className="text-2xl font-bold text-gray-900">{value}</p>
+                  <p className="text-sm text-gray-500 mt-1">{label}</p>
+                </div>
+              );
+            })
+          ) : null}
         </div>
 
         {/* Quick actions */}

@@ -1,4 +1,4 @@
-import type { LoginResponse } from '../interfaces/IAuth';
+import type { LoginResponse } from '@architect/shared';
 
 type UserInfo = LoginResponse['user'];
 

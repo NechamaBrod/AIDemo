@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, Monitor, Loader2 } from 'lucide-react';
 import { login, saveSession } from '../services/authService';
-import type { LoginRequest } from '../interfaces/IAuth';
+import type { LoginRequest } from '@architect/shared';
 import Alert from '../components/Alert';
 import Button from '../components/Button';
 
