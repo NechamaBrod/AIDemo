@@ -42,8 +42,19 @@ export const updateOrderStatusSchema = z.object({
   ]),
 });
 
+// סכמת ולידציה ל-query params של sales-analytics
+export const salesAnalyticsQuerySchema = z.object({
+  startDate: z.iso
+    .date({ message: "startDate חייב להיות בפורמט YYYY-MM-DD" })
+    .optional(),
+  endDate: z.iso
+    .date({ message: "endDate חייב להיות בפורמט YYYY-MM-DD" })
+    .optional(),
+});
+
 // טיפוסים שנגזרים מהסכמות
 export type CreateCustomerInput = z.infer<typeof createCustomerSchema>;
 export type CreateProductInput = z.infer<typeof createProductSchema>;
 export type CreateOrderInput = z.infer<typeof createOrderSchema>;
 export type UpdateOrderStatusInput = z.infer<typeof updateOrderStatusSchema>;
+export type SalesAnalyticsQueryInput = z.infer<typeof salesAnalyticsQuerySchema>;
