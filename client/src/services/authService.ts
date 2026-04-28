@@ -1,53 +1,52 @@
-import axios from 'axios';
-import type { LoginRequest, LoginResponse } from '@architect/shared';
+import { apiClient } from './apiClient';
+import type {
+  LoginRequest,
+  LoginResponse,
+  RegisterRequest,
+  IUser,
+} from '@architect/shared';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
-
-const MOCK_USER: LoginResponse = {
-  token: 'mock-jwt-token-12345',
-  user: {
-    id: '1',
-    name: 'Admin TechStore',
-    email: 'admin@techstore.com',
-    role: 'admin',
-  },
-};
+/**
+ * authService - שכבת שירות לאימות מול ה-API.
+ * האסטרטגיה: cookie-based (httpOnly) - הטוקן עצמו לא נשמר ב-localStorage.
+ * ב-localStorage נשמר רק `user` לתצוגה מהירה ב-UI; הרשאות נאכפות תמיד בשרת.
+ */
 
 export const login = async (credentials: LoginRequest): Promise<LoginResponse> => {
-  if (
-    credentials.email === 'admin@techstore.com' &&
-    credentials.password === 'Admin1234'
-  ) {
-    return Promise.resolve(MOCK_USER);
-  }
+  const { data } = await apiClient.post<LoginResponse>('/auth/login', credentials);
+  return data;
+};
 
+export const register = async (payload: RegisterRequest): Promise<LoginResponse> => {
+  const { data } = await apiClient.post<LoginResponse>('/auth/register', payload);
+  return data;
+};
+
+export const logout = async (): Promise<void> => {
   try {
-    const response = await axios.post<LoginResponse>(`${API_BASE_URL}/auth/login`, credentials);
-    return response.data;
-  } catch (err: unknown) {
-    const axiosError = err as { response?: { data?: { message?: string } } };
-    throw new Error(axiosError.response?.data?.message || 'אימייל או סיסמה שגויים');
+    await apiClient.post('/auth/logout');
+  } finally {
+    // גם אם הקריאה נכשלת - לוקלית מנקים את ה-session
+    localStorage.removeItem('user');
   }
 };
 
-export const logout = (): void => {
-  localStorage.removeItem('token');
-  localStorage.removeItem('user');
+export const fetchMe = async (): Promise<IUser> => {
+  const { data } = await apiClient.get<{ user: IUser }>('/auth/me');
+  return data.user;
 };
 
-export const getSession = (): LoginResponse['user'] | null => {
+export const getSession = (): IUser | null => {
   const raw = localStorage.getItem('user');
   if (!raw) return null;
   try {
-    return JSON.parse(raw) as LoginResponse['user'];
+    return JSON.parse(raw) as IUser;
   } catch {
     localStorage.removeItem('user');
-    localStorage.removeItem('token');
     return null;
   }
 };
 
 export const saveSession = (data: LoginResponse): void => {
-  localStorage.setItem('token', data.token);
   localStorage.setItem('user', JSON.stringify(data.user));
 };

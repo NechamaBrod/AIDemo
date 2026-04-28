@@ -12,10 +12,20 @@ export const apiClient = axios.create({
   headers: { 'Content-Type': 'application/json' },
 });
 
-// Response interceptor — אחיד לטיפול בשגיאות מהשרת
+// Response interceptor — אחיד לטיפול בשגיאות מהשרת + טיפול ב-401 (logout שקט)
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
+    // אם השרת מחזיר 401 ואנחנו לא כבר בדף הלוגין - מפנים ללוגין
+    if (
+      error.response?.status === 401 &&
+      typeof window !== 'undefined' &&
+      window.location.pathname !== '/login'
+    ) {
+      localStorage.removeItem('user');
+      window.location.href = '/login';
+    }
+
     const message =
       error.response?.data?.error ||
       error.response?.data?.message ||

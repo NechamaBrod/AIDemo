@@ -11,10 +11,11 @@
 
 import mongoose from "mongoose";
 import dotenv from "dotenv";
+import bcrypt from "bcryptjs";
 import Customer from "./models/Customer";
 import Product from "./models/Product";
 import Order from "./models/Order";
-import type { OrderStatus } from "@architect/shared";
+import type { OrderStatus, UserRole } from "@architect/shared";
 
 dotenv.config();
 
@@ -183,13 +184,37 @@ async function seed() {
   console.log(`   ✅ ${insertedProducts.length} מוצרים נוספו`);
 
   // הכנסת לקוחות (עם תאריכי יצירה מגוונים)
-  console.log("👥 מכניס 20 לקוחות...");
+  console.log("👥 מכניס משתמשי backoffice + 20 לקוחות...");
+
+  // ⚠️ Customer.insertMany לא מפעיל pre('save'), לכן נצפין סיסמאות מראש בעצמנו.
+  // סיסמת dev אחידה לכל המשתמשים: Admin1234 (תואם ל-MOCK_USER הישן בלקוח)
+  const DEV_PASSWORD = "Admin1234";
+  const hashedDevPassword = await bcrypt.hash(DEV_PASSWORD, 12);
+
+  // משתמשי backoffice ידועים מראש - לפיתוח ו-RBAC testing
+  const backofficeUsers: Array<{
+    name: string;
+    email: string;
+    password: string;
+    role: UserRole;
+  }> = [
+    { name: "Admin TechStore", email: "admin@techstore.com", password: hashedDevPassword, role: "admin" },
+    { name: "Manager TechStore", email: "manager@techstore.com", password: hashedDevPassword, role: "manager" },
+  ];
+
   const customersWithDates = customers.map((c, i) => ({
     ...c,
+    password: hashedDevPassword, // דורסים את ה-"hashed_password_X" המקורי בסיסמה אמיתית
+    role: "user" as UserRole,
     createdAt: new Date(Date.now() - (i + 1) * 3 * 24 * 60 * 60 * 1000), // פריסה על פני 60 יום
   }));
-  const insertedCustomers = await Customer.insertMany(customersWithDates);
-  console.log(`   ✅ ${insertedCustomers.length} לקוחות נוספו`);
+
+  const insertedCustomers = await Customer.insertMany([
+    ...backofficeUsers,
+    ...customersWithDates,
+  ]);
+  console.log(`   ✅ ${insertedCustomers.length} משתמשים נוספו (כולל admin + manager)`);
+  console.log(`   🔑 סיסמת ברירת מחדל לכל המשתמשים: ${DEV_PASSWORD}`);
 
   // ============================================================
   // 📋 יצירת הזמנות - "הסיפור"
