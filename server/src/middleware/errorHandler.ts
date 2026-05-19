@@ -15,6 +15,24 @@ const errorHandler = (
     return;
   }
 
+  // body-parser: גוף בקשה גדול מדי (תמונה כבדה וכו')
+  if (err?.type === "entity.too.large" || err?.status === 413) {
+    res.status(413).json({
+      error: "התמונה או התוכן ששלחת גדולים מדי. נא להקטין את התמונה (עד ~6MB) ולנסות שוב.",
+      code: "PAYLOAD_TOO_LARGE",
+    });
+    return;
+  }
+
+  // body-parser: JSON לא תקין
+  if (err?.type === "entity.parse.failed") {
+    res.status(400).json({
+      error: "גוף הבקשה אינו JSON תקין.",
+      code: "INVALID_JSON",
+    });
+    return;
+  }
+
   // שגיאת ולידציה של Zod (הגנה כפולה - בדרך כלל מטופלת ב-validate middleware)
   if (err?.name === "ZodError") {
     res.status(400).json({ errors: err.issues ?? [] });

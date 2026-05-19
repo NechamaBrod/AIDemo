@@ -37,8 +37,13 @@ const FEATURE_CARDS = [
 ];
 
 /* ─── Quick actions (static) ─── */
-const QUICK_ACTIONS = [
-  { icon: Package, label: 'הוסף מוצר' },
+const QUICK_ACTIONS: Array<{
+  icon: typeof Package;
+  label: string;
+  to?: string;
+  adminOnly?: boolean;
+}> = [
+  { icon: Package, label: 'הוסף מוצר', to: '/products/new', adminOnly: true },
   { icon: Users, label: 'לקוח חדש' },
   { icon: ShoppingCart, label: 'הזמנה חדשה' },
   { icon: BarChart2, label: 'הפק דוח' },
@@ -299,17 +304,21 @@ const HomePage = () => {
         {/* Quick actions */}
         <Card title="פעולות מהירות">
           <div className="flex flex-wrap gap-2 sm:gap-3">
-            {QUICK_ACTIONS.map(({ icon: Icon, label }) => (
-              <Button
-                key={label}
-                variant="outline"
-                size="sm"
-                icon={Icon}
-                disabled
-              >
-                {label}
-              </Button>
-            ))}
+            {QUICK_ACTIONS.map(({ icon: Icon, label, to, adminOnly }) => {
+              const allowed = !adminOnly || user?.role === 'admin';
+              return (
+                <Button
+                  key={label}
+                  variant="outline"
+                  size="sm"
+                  icon={Icon}
+                  disabled={!allowed || !to}
+                  onClick={to && allowed ? () => navigate(to) : undefined}
+                >
+                  {label}
+                </Button>
+              );
+            })}
           </div>
         </Card>
       </div>

@@ -1,6 +1,6 @@
+import "dotenv/config";
 import express from "express";
 import cors from "cors";
-import dotenv from "dotenv";
 import mongoose from "mongoose";
 import helmet from "helmet";
 import cookieParser from "cookie-parser";
@@ -8,9 +8,9 @@ import swaggerUi from "swagger-ui-express";
 import { swaggerSpec } from "./config/swagger";
 import dashboardRoutes from "./routes/dashboardRoutes";
 import authRoutes from "./routes/authRoutes";
+import productRoutes from "./routes/productRoutes";
+import aiRoutes from "./routes/aiRoutes";
 import errorHandler from "./middleware/errorHandler";
-
-dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -24,7 +24,12 @@ app.use(
     credentials: true,
   })
 );
-app.use(express.json());
+// JSON parser גלובלי - מעלים את הגבול ל-8mb כדי לתמוך במוצרים עם תמונה כ-base64.
+// מדלגים על /api/ai כי הוא מקבל parser נפרד משלו עם אותו limit.
+app.use((req, res, next) => {
+  if (req.path.startsWith("/api/ai")) return next();
+  return express.json({ limit: "8mb" })(req, res, next);
+});
 app.use(cookieParser(process.env.COOKIE_SECRET));
 
 // חיבור ל-MongoDB
@@ -46,6 +51,12 @@ app.use("/api/auth", authRoutes);
 
 // נתיבי Dashboard (מוגנים ב-requireAuth בתוך הראוטר עצמו)
 app.use("/api/dashboard", dashboardRoutes);
+
+// נתיבי Products (מוגנים ב-requireAuth + requireRole("admin") בתוך הראוטר)
+app.use("/api/products", productRoutes);
+
+// נתיבי AI - דורשים body גדול יותר בגלל תמונה כ-base64 (מוגבל ב-vision route בלבד)
+app.use("/api/ai", express.json({ limit: "8mb" }), aiRoutes);
 
 // מידלוור מרכזי לטיפול בשגיאות - חייב להירשם אחרי כל הנתיבים
 app.use(errorHandler);
