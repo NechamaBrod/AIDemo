@@ -28,6 +28,23 @@ export interface FeedbackRequest {
 
 Re-export from `shared/src/index.ts`.
 
+### Validation Error Shape (`shared/src/types/api.ts`)
+
+The validate middleware already returns `{field, message}` pairs. To ensure client/server consistency, `api.ts` should export:
+
+```ts
+export interface ValidationError {
+  field: string;
+  message: string;
+}
+
+export interface ValidationErrorResponse {
+  errors: ValidationError[];
+}
+```
+
+Both `ApiResponse<T>` and `ValidationErrorResponse` are the two response shapes the client must handle for `POST /api/feedback`. The server controller uses `ApiResponse<Feedback>` for 201; the validate middleware returns `ValidationErrorResponse` for 400.
+
 ---
 
 ## Validation Rules
@@ -81,21 +98,18 @@ Response wraps in `ApiResponse<Feedback>` (existing pattern from `shared/src/typ
 {
   "errors": [
     {
-      "code": "too_small",
-      "minimum": 2,
-      "path": ["name"],
+      "field": "name",
       "message": "שם חייב להכיל לפחות 2 תווים"
     },
     {
-      "code": "invalid_string",
-      "path": ["email"],
+      "field": "email",
       "message": "כתובת אימייל לא תקינה"
     }
   ]
 }
 ```
 
-Zod issues array — same shape returned by the existing `errorHandler.ts` for `ZodError`.
+Matches the `{field, message}` format produced by the existing `validate` middleware (`server/src/middleware/validate.ts` lines 14-19), which maps Zod issues to a flat, client-friendly shape. The `field` value is the dot-joined `issue.path`.
 
 **Error — 500 Internal Server Error:**
 
@@ -141,13 +155,19 @@ This keeps the feature self-contained and avoids a DB migration. Can be upgraded
 
 ## Design Notes
 
-The form should use the existing design-system components:
-- `Input` for name and email fields
-- A `<textarea>` styled with design-system spacing/colors for the message field
-- `Button` (primary variant) for submit
-- `Alert` (success/error variants) for submission result feedback
+The form must use only existing design-system components — no hardcoded CSS values. Token mapping:
 
-Layout: RTL, centered card on a clean background, consistent with `CustomerHomePage` styling.
+| Element | Component | Variant / Props |
+|---------|-----------|-----------------|
+| Name field | `Input` | `label="שם"`, `placeholder`, `error` prop for validation |
+| Email field | `Input` | `type="email"`, same pattern |
+| Message field | `Textarea` | Uses same spacing/color tokens as `Input` |
+| Submit button | `Button` | `variant="primary"`, `size="lg"`, `disabled` while in-flight |
+| Success state | `Alert` | `type="success"`, `title="תודה!"` |
+| Error state | `Alert` | `type="error"`, `title="שגיאה"` |
+| Form wrapper | `Card` | `title` + `subtitle` props |
+
+Layout: RTL (`dir="rtl"`), centered card (`max-w-2xl mx-auto`), clean background (`bg-gray-50`), consistent with `CustomerHomePage` styling. All spacing, colors, and typography use Tailwind classes matching the design-system showcase — no inline styles or raw hex/rgb values.
 
 ---
 
