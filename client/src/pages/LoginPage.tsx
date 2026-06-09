@@ -26,6 +26,11 @@ const LoginPage = () => {
       return;
     }
 
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
+      setError('כתובת אימייל לא תקינה');
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
 
@@ -131,6 +136,7 @@ const LoginPage = () => {
 
             {/* Submit Button */}
             <Button
+              type="submit"
               variant="primary"
               disabled={isDisabled}
               className="w-full text-base"

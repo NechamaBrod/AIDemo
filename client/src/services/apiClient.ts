@@ -3,6 +3,7 @@
  * כולל baseURL מהסביבה, withCredentials, ו-interceptor אחיד לנירמול שגיאות מהשרת.
  */
 import axios from 'axios';
+import { navigateRef } from './navigateRef';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
@@ -23,7 +24,11 @@ apiClient.interceptors.response.use(
       window.location.pathname !== '/login'
     ) {
       localStorage.removeItem('user');
-      window.location.href = '/login';
+      if (navigateRef.current) {
+        navigateRef.current('/login', { replace: true });
+      } else {
+        window.location.href = '/login';
+      }
     }
 
     const message =

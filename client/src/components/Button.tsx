@@ -4,6 +4,7 @@ import { theme } from './theme';
 interface ButtonProps {
   variant?: 'primary' | 'secondary' | 'success' | 'error' | 'ghost' | 'outline';
   size?: 'sm' | 'md' | 'lg' | 'icon';
+  type?: 'button' | 'submit' | 'reset';
   icon?: React.ComponentType<{ size?: number; className?: string }>;
   children?: React.ReactNode;
   disabled?: boolean;
@@ -11,7 +12,7 @@ interface ButtonProps {
   className?: string;
 }
 
-const Button = ({ variant = 'primary', size = 'md', icon: Icon, children, disabled, onClick, className = '' }: ButtonProps) => {
+const Button = ({ variant = 'primary', size = 'md', type = 'button', icon: Icon, children, disabled, onClick, className = '' }: ButtonProps) => {
   const baseStyle = "inline-flex items-center justify-center rounded-lg font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500";
 
   const variants: Record<string, string> = {
@@ -34,6 +35,7 @@ const Button = ({ variant = 'primary', size = 'md', icon: Icon, children, disabl
 
   return (
     <button
+      type={type}
       disabled={disabled}
       onClick={onClick}
       className={`${baseStyle} ${style} ${sizes[size]} ${className}`}

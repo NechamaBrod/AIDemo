@@ -1,6 +1,10 @@
 import jwt, { SignOptions } from "jsonwebtoken";
 import type { UserRole } from "@architect/shared";
 
+if (process.env.NODE_ENV === "production" && !process.env.JWT_SECRET) {
+  throw new Error("JWT_SECRET must be set in production");
+}
+
 const JWT_SECRET = process.env.JWT_SECRET || "dev-only-secret-change-me-32chars-min";
 const JWT_EXPIRES_IN = (process.env.JWT_EXPIRES_IN || "24h") as SignOptions["expiresIn"];
 

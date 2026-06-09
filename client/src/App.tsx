@@ -1,4 +1,5 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
 
 import LoginPage from './pages/LoginPage';
 import HomePage from './pages/HomePage';
@@ -8,6 +9,7 @@ import CustomerHomePage from './pages/CustomerHomePage';
 import FeedbackPage from './pages/FeedbackPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import { getSession } from './services/authService';
+import { navigateRef } from './services/navigateRef';
 
 /* שורש: אדמין/מנהל → דשבורד; כל השאר (כולל אורחים) → חנות */
 const RootRedirect = () => {
@@ -18,9 +20,19 @@ const RootRedirect = () => {
   return <Navigate to="/shop" replace />;
 };
 
+const NavigateRefSetter = () => {
+  const navigate = useNavigate();
+  useEffect(() => {
+    navigateRef.current = navigate;
+    return () => { navigateRef.current = null; };
+  }, [navigate]);
+  return null;
+};
+
 function App() {
   return (
     <BrowserRouter>
+      <NavigateRefSetter />
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/" element={<RootRedirect />} />

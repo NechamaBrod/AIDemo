@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { Navigate } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import { fetchMe, saveSession } from '../services/authService';
@@ -19,13 +19,13 @@ type Status = 'loading' | 'ok' | 'forbidden' | 'unauth';
  */
 const ProtectedRoute = ({ children, roles }: ProtectedRouteProps) => {
   const [status, setStatus] = useState<Status>('loading');
+  const rolesKey = useMemo(() => JSON.stringify(roles), [roles]);
 
   useEffect(() => {
     let cancelled = false;
     fetchMe()
       .then((user: IUser) => {
         if (cancelled) return;
-        // עדכון ה-session המקומי כדי שה-UI יהיה עדכני
         saveSession({ user });
         if (roles && !roles.includes(user.role)) {
           setStatus('forbidden');
@@ -39,7 +39,7 @@ const ProtectedRoute = ({ children, roles }: ProtectedRouteProps) => {
     return () => {
       cancelled = true;
     };
-  }, [roles]);
+  }, [rolesKey]);
 
   if (status === 'loading') {
     return (
