@@ -5,6 +5,7 @@ import HomePage from './pages/HomePage';
 import ProductListPage from './pages/ProductListPage';
 import ProductCreatePage from './pages/ProductCreatePage';
 import CustomerHomePage from './pages/CustomerHomePage';
+import FeedbackPage from './pages/FeedbackPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import { getSession } from './services/authService';
 
@@ -36,6 +37,8 @@ function App() {
         <Route path="/products" element={<ProductListPage />} />
         {/* מסך לקוח / חנות - ציבורי */}
         <Route path="/shop" element={<CustomerHomePage />} />
+        {/* טופס יצירת קשר / משוב - ציבורי */}
+        <Route path="/feedback" element={<FeedbackPage />} />
         {/* יצירת מוצר - admin בלבד */}
         <Route
           path="/products/new"

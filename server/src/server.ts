@@ -10,6 +10,7 @@ import dashboardRoutes from "./routes/dashboardRoutes";
 import authRoutes from "./routes/authRoutes";
 import productRoutes from "./routes/productRoutes";
 import aiRoutes from "./routes/aiRoutes";
+import feedbackRoutes from "./routes/feedbackRoutes";
 import errorHandler from "./middleware/errorHandler";
 
 const app = express();
@@ -57,6 +58,9 @@ app.use("/api/products", productRoutes);
 
 // נתיבי AI - דורשים body גדול יותר בגלל תמונה כ-base64 (מוגבל ב-vision route בלבד)
 app.use("/api/ai", express.json({ limit: "8mb" }), aiRoutes);
+
+// נתיבי Feedback - ציבורי, ללא אימות
+app.use("/api/feedback", feedbackRoutes);
 
 // מידלוור מרכזי לטיפול בשגיאות - חייב להירשם אחרי כל הנתיבים
 app.use(errorHandler);
