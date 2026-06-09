@@ -6,7 +6,7 @@ import Button from '../components/Button';
 import Input from '../components/Input';
 import Textarea from '../components/Textarea';
 import Alert from '../components/Alert';
-import { submitFeedback } from '../services/feedbackService';
+import { submitFeedback, FeedbackValidationError } from '../services/feedbackService';
 
 interface FieldErrors {
   name?: string;
@@ -54,7 +54,11 @@ const FeedbackPage = () => {
       setMessage('');
       setFieldErrors({});
     } catch (err: unknown) {
-      setServerError(err instanceof Error ? err.message : 'שגיאה בשליחת הפנייה');
+      if (err instanceof FeedbackValidationError) {
+        setFieldErrors(err.fieldErrors);
+      } else {
+        setServerError(err instanceof Error ? err.message : 'שגיאה בשליחת הפנייה');
+      }
     } finally {
       setSubmitting(false);
     }

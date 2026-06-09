@@ -47,7 +47,7 @@ describe("POST /api/feedback", () => {
 
     expect(res.body.errors).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ field: "name" }),
+        expect.objectContaining({ path: expect.arrayContaining(["name"]), message: expect.any(String) }),
       ])
     );
   });
@@ -61,7 +61,7 @@ describe("POST /api/feedback", () => {
 
     expect(res.body.errors).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ field: "email" }),
+        expect.objectContaining({ path: expect.arrayContaining(["email"]), message: expect.any(String) }),
       ])
     );
   });
@@ -75,7 +75,7 @@ describe("POST /api/feedback", () => {
 
     expect(res.body.errors).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ field: "message" }),
+        expect.objectContaining({ path: expect.arrayContaining(["message"]), code: "too_small" }),
       ])
     );
   });
@@ -93,7 +93,7 @@ describe("POST /api/feedback", () => {
 
     expect(res.body.errors).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ field: "name" }),
+        expect.objectContaining({ path: expect.arrayContaining(["name"]), code: "too_big" }),
       ])
     );
   });
@@ -111,7 +111,7 @@ describe("POST /api/feedback", () => {
 
     expect(res.body.errors).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ field: "message" }),
+        expect.objectContaining({ path: expect.arrayContaining(["message"]), code: "too_big" }),
       ])
     );
   });
@@ -124,10 +124,10 @@ describe("POST /api/feedback", () => {
       .expect(400);
 
     expect(res.body.errors.length).toBeGreaterThanOrEqual(3);
-    const fields = res.body.errors.map((e: { field: string }) => e.field);
-    expect(fields).toContain("name");
-    expect(fields).toContain("email");
-    expect(fields).toContain("message");
+    const paths = res.body.errors.map((e: { path: string[] }) => e.path[0]);
+    expect(paths).toContain("name");
+    expect(paths).toContain("email");
+    expect(paths).toContain("message");
   });
 
   // Scenario 8: Extra fields stripped (Zod .strip()) → 201

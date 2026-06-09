@@ -10,13 +10,7 @@ export const validate =
     const result = schema.safeParse(req[target]);
 
     if (!result.success) {
-      // מיפוי שגיאות Zod לפורמט קריא
-      const errors = result.error.issues.map((issue) => ({
-        field: issue.path.join("."),
-        message: issue.message,
-      }));
-
-      res.status(400).json({ errors });
+      res.status(400).json({ errors: result.error.issues });
       return;
     }
 

@@ -4,11 +4,17 @@ import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import FeedbackPage from "../pages/FeedbackPage";
 
+import { FeedbackValidationError } from "../services/feedbackService";
+
 const mockSubmitFeedback = vi.fn();
 
-vi.mock("../services/feedbackService", () => ({
-  submitFeedback: (...args: unknown[]) => mockSubmitFeedback(...args),
-}));
+vi.mock("../services/feedbackService", async () => {
+  const actual = await vi.importActual("../services/feedbackService");
+  return {
+    ...actual,
+    submitFeedback: (...args: unknown[]) => mockSubmitFeedback(...args),
+  };
+});
 
 const mockNavigate = vi.fn();
 vi.mock("react-router-dom", async () => {
@@ -111,9 +117,13 @@ describe("FeedbackPage", () => {
     expect(mockSubmitFeedback).not.toHaveBeenCalled();
   });
 
-  // Scenario 4: Server returns 400 → error alert
-  it("shows error alert when the server returns an error", async () => {
-    mockSubmitFeedback.mockRejectedValueOnce(new Error("שגיאת ולידציה בשרת"));
+  // Scenario 4: Server returns 400 → field-level validation errors
+  it("shows field-level errors when the server returns 400 validation errors", async () => {
+    mockSubmitFeedback.mockRejectedValueOnce(
+      new FeedbackValidationError([
+        { code: "too_small", path: ["name"], message: "שם חייב להכיל לפחות 2 תווים" },
+      ])
+    );
 
     const user = userEvent.setup();
     renderPage();
@@ -125,7 +135,9 @@ describe("FeedbackPage", () => {
     await user.click(getSubmitButton());
 
     await waitFor(() => {
-      expect(screen.getByText("שגיאת ולידציה בשרת")).toBeInTheDocument();
+      const alerts = screen.getAllByRole("alert");
+      const errorTexts = alerts.map((a) => a.textContent);
+      expect(errorTexts.some((t) => t?.includes("שם חייב להכיל לפחות 2 תווים"))).toBe(true);
     });
   });
 
