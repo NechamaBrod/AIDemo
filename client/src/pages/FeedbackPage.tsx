@@ -4,6 +4,7 @@ import { Send, ArrowRight } from 'lucide-react';
 import Card from '../components/Card';
 import Button from '../components/Button';
 import Input from '../components/Input';
+import Textarea from '../components/Textarea';
 import Alert from '../components/Alert';
 import { submitFeedback } from '../services/feedbackService';
 
@@ -99,25 +100,14 @@ const FeedbackPage = () => {
               onChange={(e) => setEmail(e.target.value)}
               error={fieldErrors.email}
             />
-            <div className="w-full">
-              <label className="block text-sm font-medium text-gray-700 mb-1">הודעה</label>
-              <textarea
-                placeholder="מה תרצו לשתף אותנו?"
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                rows={5}
-                className={`
-                  block w-full rounded-md border shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all resize-y
-                  ${fieldErrors.message
-                    ? 'border-red-300 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500'
-                    : 'border-gray-300 text-gray-900 focus:border-blue-500'
-                  }
-                `}
-              />
-              {fieldErrors.message && (
-                <p className="mt-1 text-sm text-red-600" role="alert">{fieldErrors.message}</p>
-              )}
-            </div>
+            <Textarea
+              label="הודעה"
+              placeholder="מה תרצו לשתף אותנו?"
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              rows={5}
+              error={fieldErrors.message}
+            />
 
             <Button
               variant="primary"
